@@ -1,0 +1,141 @@
+# 1. Loading Dataset
+import pandas as pd
+df = pd.read_csv('crx.data',sep='\s+',header=None)
+display(df)
+
+# Described specific row data
+headerRow = ['Gender', 'Age', 'Debt', 'Married', 'Bank Customer', 'Education', 'Ethnicity', 'Years Employed', 'Prior Default', 'Employed', 'Credit Score', 'Driving License', 'Citizenship', 'Zip Code', 'Income', 'Approved']
+df = pd.read_csv('crx.data', names = headerRow)
+display(df)
+
+# Knowing the data
+# Print summary statistics
+desc = df.describe()
+print(desc)
+# Above line gives info about the numeric features in the dataset.
+
+# Print DataFrame information
+info = df.info()
+print(info)
+
+# Inspect missing values in the dataset
+print(df.tail(17))
+
+# Handling the null Values
+
+import numpy as np
+# Replace the '?'s with NaN
+df = df.replace('?',np.nan)
+
+# Inspect the missing values again
+print(df.tail(17))
+
+# Handling missing data. Replace missing data with mean of the data
+def handleMissingNumeric(df, colNames):
+    for col in colNames:
+        df[col] = pd.to_numeric(df[col], errors = 'coerce')
+        df[col] = df[col].fillna(df[col].mean())
+def filterDf(df, colNames):
+    for cols in colNames:
+        d = {}
+        for i in df[cols]:
+            if i not in d:
+                d[i] = len(d)
+        df[cols] = df[cols].map(d)
+handleMissingNumeric(df, ['Age', 'Debt', 'Years Employed', 'Credit Score', 'Zip Code', 'Income'])
+filterDf(df, ['Gender', 'Married', 'Bank Customer', 'Education', 'Ethnicity', 'Prior Default', 'Employed', 'Driving License', 'Citizenship', 'Approved'])
+
+#Other important imports
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score as score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import normalize as normalizeSk
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+%matplotlib inline
+import warnings
+warnings.filterwarnings("ignore")
+
+# Filtering the data
+
+cMatrix = df.corr()
+sns.heatmap(cMatrix, annot = False, cmap = 'coolwarm')
+
+# We can see from the above representation that Married, Bank Customer, Education, Citizenship, Zip Code doesn’t affect the target variable ‘Approved’.
+
+# So we are going to drop these features.
+
+df = df.drop([ 'Married', 'Bank Customer', 'Education', 'Citizenship', 'Zip Code'], axis = 1)
+
+# Split data into Train-Test sets.
+# We split the data in training and testing sets. Here we have used 70:30 ratio.
+
+x = ['Gender', 'Age', 'Debt', 'Ethnicity', 'Years Employed', 'Prior Default', 'Employed', 'Credit Score', 'Driving License', 'Income']
+y = ['Approved']
+xTrain, xTest, yTrain, yTest = train_test_split(df[x], df[y],test_size=0.30,random_state=2)
+
+# Applying Model-1 Decision Tree Classifier
+# We apply decision tree on the given dataset
+
+list1=[]
+trainAcc = []
+testAcc = []
+for i in range(1, 16):    
+    dtc = DecisionTreeClassifier(max_depth = i ,random_state = 0)
+    dtc.fit(xTrain, yTrain)
+    trainPred = dtc.predict(xTrain)
+    trainAcc.append(score(trainPred, yTrain)*100)
+    testPred = dtc.predict(xTest)
+    testAcc.append(score(testPred, yTest)*100)
+print("Test accuracy for different depths is: ")
+print(testAcc)
+plt.plot(testAcc)
+plt.plot(trainAcc);
+
+# Applying Model-2 Logistic Regression Classifier
+# We further use Logistic Regression Classifier to improve the result.
+from sklearn.linear_model import LogisticRegression
+
+clf = LogisticRegression(random_state = 0)
+clf.fit(xTrain, yTrain)
+trainPred = clf.predict(xTrain)
+testPred = clf.predict(xTest)
+    
+print('{}, Train : {}, Test : {}'.format(i, round(score(trainPred, yTrain), 4), round(score(testPred, yTest), 4)))
+
+from sklearn.datasets import make_classification
+from sklearn.ensemble import GradientBoostingClassifier
+
+clf = GradientBoostingClassifier(random_state=0)
+clf.fit(xTrain, yTrain)
+
+trainPred = clf.predict(xTrain)
+testPred = clf.predict(xTest)
+
+print('Train : {}, Test : {}'.format(round(score(trainPred, yTrain), 6), round(score(testPred, yTest), 6)))
+
+dtc = LogisticRegression(tol = 0.0001, max_iter = 300)
+dtc.fit(xTrain, yTrain)
+
+trainPred = dtc.predict(xTrain)
+
+testPred = dtc.predict(xTest)
+
+print('Train : {}, Test : {}'.format(round(score(trainPred, yTrain), 6), round(score(testPred, yTest), 6)))
+
+from sklearn.ensemble import AdaBoostClassifier
+
+clf = AdaBoostClassifier(base_estimator = LogisticRegression(tol = 0.0001, max_iter = 300),random_state=0)
+clf.fit(xTrain, yTrain)
+
+clf.predict(xTrain)
+
+trainPred = clf.predict(xTrain)
+testPred = clf.predict(xTest)
+
+print('Train : {}, Test : {}'.format(round(score(trainPred, yTrain), 6), round(score(testPred, yTest), 6)))
