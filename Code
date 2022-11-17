@@ -127,15 +127,25 @@ trainPred = dtc.predict(xTrain)
 testPred = dtc.predict(xTest)
 
 print('Train : {}, Test : {}'.format(round(score(trainPred, yTrain), 6), round(score(testPred, yTest), 6)))
-
-from sklearn.ensemble import AdaBoostClassifier
-
-clf = AdaBoostClassifier(base_estimator = LogisticRegression(tol = 0.0001, max_iter = 300),random_state=0)
-clf.fit(xTrain, yTrain)
-
-clf.predict(xTrain)
-
-trainPred = clf.predict(xTrain)
-testPred = clf.predict(xTest)
-
-print('Train : {}, Test : {}'.format(round(score(trainPred, yTrain), 6), round(score(testPred, yTest), 6)))
+from sklearn.neighbors import KNeighborsClassifier
+neighbors = np.arange(1, 9)
+train_accuracy = np.empty(len(neighbors))
+test_accuracy = np.empty(len(neighbors))
+  
+# Loop over K values
+for i, k in enumerate(neighbors):
+    knn = KNeighborsClassifier(n_neighbors=k)
+    knn.fit(xTrain, yTrain)
+      
+    # Compute training and test data accuracy
+    train_accuracy[i] = knn.score(xTrain, yTrain)
+    test_accuracy[i] = knn.score(xTest, yTest)
+  
+# Generate plot
+plt.plot(neighbors, test_accuracy, label = 'Testing dataset Accuracy')
+plt.plot(neighbors, train_accuracy, label = 'Training dataset Accuracy')
+  
+plt.legend()
+plt.xlabel('n_neighbors')
+plt.ylabel('Accuracy')
+plt.show()
